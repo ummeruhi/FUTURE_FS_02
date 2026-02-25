@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini CRM</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ✅ LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-top">
+      <div class="brand">Mini CRM</div>
+      <div class="user-chip" id="navUsername">User</div>
+    </div>
+
+    <div class="sb-nav">
+      <button type="button" class="sb-btn active" id="tabDashboard" onclick="showSection('dashboard')">
+        Dashboard
+      </button>
+      <button type="button" class="sb-btn" id="tabLeads" onclick="showSection('leads')">
+        Leads
+      </button>
+    </div>
+
+    <div class="sb-bottom">
+      <button type="button" class="sb-btn danger" onclick="logout()">Logout</button>
+    </div>
+  </aside>
+
+  <!-- ✅ MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      
+    </div>
+
+    <!-- ========================= DASHBOARD ========================= -->
+    <section id="sectionDashboard">
+      <div class="stats">
+        <div class="card"><h3>Total Leads</h3><div class="counter" id="totalLeads">0</div></div>
+        <div class="card"><h3>New Leads</h3><div class="counter" id="newLeads">0</div></div>
+        <div class="card"><h3>Contacted</h3><div class="counter" id="contactedLeads">0</div></div>
+        <div class="card"><h3>Converted</h3><div class="counter" id="convertedLeads">0</div></div>
+      </div>
+
+      <div class="graphs">
+        <div class="graph-card">
+          <h3>Lead Status</h3>
+          <div class="bars">
+            <div class="bar"><span>New</span><div class="fill" id="barNew"></div></div>
+            <div class="bar"><span>Contacted</span><div class="fill" id="barContacted"></div></div>
+            <div class="bar"><span>Converted</span><div class="fill" id="barConverted"></div></div>
+          </div>
+        </div>
+
+        <div class="graph-card">
+          <h3>Conversion Rate</h3>
+          <div class="donut" id="donut">
+            <span id="conversionRate">0%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= LEADS ========================= -->
+    <section id="sectionLeads" class="hidden">
+
+      <div class="section-head">
+        <div>
+          <div class="section-title"></div>
+          <div class="section-sub">Search, filter, update status, delete, add manually</div>
+        </div>
+
+        <!-- ✅ Add Lead button (opens form) -->
+        <button type="button" class="primary-btn" onclick="openLeadForm()">
+          + Add Lead
+        </button>
+      </div>
+
+      <!-- ✅ Manual Lead Form (HIDDEN by default) -->
+      <div class="form-card hidden" id="leadFormCard">
+        <div class="form-head">
+          <h3>Add Lead (Manual)</h3>
+          <button type="button" class="close-btn" onclick="closeLeadForm()">✕</button>
+        </div>
+
+        <form id="leadForm" class="lead-form">
+          <div class="form-row">
+            <input type="text" id="leadName" placeholder="Name" required />
+            <input type="email" id="leadEmail" placeholder="Email" required />
+          </div>
+
+          <div class="form-row">
+            <input type="text" id="leadPhone" placeholder="Phone" />
+            <select id="leadStatus">
+              <option value="new">new</option>
+              <option value="contacted">contacted</option>
+              <option value="converted">converted</option>
+            </select>
+          </div>
+
+          <button type="submit" class="primary-btn">Save Lead</button>
+          <p id="leadMsg" class="form-msg"></p>
+        </form>
+      </div>
+
+      <!-- ✅ Leads Table (ALWAYS visible) -->
+      <div class="table-card" id="leadsTableCard">
+        <div class="table-tools">
+          <div class="searchbox">
+            <span class="search-ico">🔎</span>
+            <input id="leadSearch" type="text" placeholder="Search by name/email/phone..." oninput="applyLeadFilters()" />
+          </div>
+
+          <div class="filters">
+            <button type="button" class="pill active" data-filter="all" onclick="setStatusFilter('all')">All</button>
+            <button type="button" class="pill" data-filter="new" onclick="setStatusFilter('new')">New</button>
+            <button type="button" class="pill" data-filter="contacted" onclick="setStatusFilter('contacted')">Contacted</button>
+            <button type="button" class="pill" data-filter="converted" onclick="setStatusFilter('converted')">Converted</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="min-width:160px;">Name</th>
+                <th style="min-width:220px;">Email</th>
+                <th style="min-width:140px;">Phone</th>
+                <th style="min-width:240px;">Status</th>
+                <th style="min-width:120px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTable"></tbody>
+          </table>
+        </div>
+
+        
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<!-- Toasts -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+const API = "http://localhost:5000";
+
+/* Toast */
+function toast(message, type="success"){
+  const wrap = document.getElementById("toastWrap");
+  const t = document.createElement("div");
+  t.className = `toast ${type}`;
+  t.textContent = message;
+  wrap.appendChild(t);
+  setTimeout(() => t.classList.add("show"), 10);
+  setTimeout(() => {
+    t.classList.remove("show");
+    setTimeout(() => t.remove(), 250);
+  }, 2200);
+}
+
+/* Tabs */
+function setActive(tab){
+  document.getElementById("tabDashboard").classList.remove("active");
+  document.getElementById("tabLeads").classList.remove("active");
+  if(tab === "dashboard") document.getElementById("tabDashboard").classList.add("active");
+  if(tab === "leads") document.getElementById("tabLeads").classList.add("active");
+}
+
+function showSection(which){
+  const dash = document.getElementById("sectionDashboard");
+  const leads = document.getElementById("sectionLeads");
+  const title = document.getElementById("pageTitle");
+
+  if(which === "dashboard"){
+    dash.classList.remove("hidden");
+    leads.classList.add("hidden");
+    setActive("dashboard");
+    title.textContent = "Dashboard";
+    loadAnalytics();
+    return;
+  }
+
+  dash.classList.add("hidden");
+  leads.classList.remove("hidden");
+  setActive("leads");
+  title.textContent = "Leads";
+
+  // ✅ Leads tab: show table, but keep form hidden (your requirement)
+  closeLeadForm();
+  loadLeads();
+}
+
+/* Username */
+function loadUsername(){
+  const raw = localStorage.getItem("admin");
+  let name = "User";
+  try{
+    const obj = JSON.parse(raw);
+    if(obj?.username) name = obj.username;
+    if(typeof raw === "string" && raw && !obj?.username) name = raw;
+  }catch(e){}
+  document.getElementById("navUsername").textContent = name;
+}
+
+function logout(){
+  localStorage.removeItem("admin");
+  window.location.href = "login.html";
+}
+
+/* ✅ Manual lead form open/close (only by button) */
+function openLeadForm(){
+  const card = document.getElementById("leadFormCard");
+  card.classList.remove("hidden");
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => document.getElementById("leadName")?.focus(), 120);
+}
+function closeLeadForm(){
+  document.getElementById("leadFormCard").classList.add("hidden");
+}
+
+/* Analytics */
+function animateCounter(id, value){
+  const el = document.getElementById(id);
+  const target = Number(value || 0);
+  let start = 0;
+  const step = target / 40;
+
+  const interval = setInterval(() => {
+    start += step;
+    if(start >= target){
+      el.innerText = target;
+      clearInterval(interval);
+    }else{
+      el.innerText = Math.floor(start);
+    }
+  }, 20);
+}
+
+async function loadAnalytics(){
+  const res = await fetch(`${API}/analytics`);
+  const data = await res.json();
+
+  animateCounter("totalLeads", data.total);
+  animateCounter("newLeads", data.newLeads);
+  animateCounter("contactedLeads", data.contacted);
+  animateCounter("convertedLeads", data.converted);
+
+  const total = Number(data.total) || 1;
+  document.getElementById("barNew").style.height = (data.newLeads / total) * 100 + "%";
+  document.getElementById("barContacted").style.height = (data.contacted / total) * 100 + "%";
+  document.getElementById("barConverted").style.height = (data.converted / total) * 100 + "%";
+
+  document.getElementById("donut").style.setProperty("--percent", Number(data.conversionRate) || 0);
+  document.getElementById("conversionRate").innerText = (Number(data.conversionRate) || 0) + "%";
+}
+
+/* Leads search/filter */
+let allLeadsCache = [];
+let currentStatusFilter = "all";
+
+function setStatusFilter(filter){
+  currentStatusFilter = filter;
+  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  const pill = document.querySelector(`.pill[data-filter="${filter}"]`);
+  if(pill) pill.classList.add("active");
+  applyLeadFilters();
+}
+
+function matchesSearch(lead, term){
+  if(!term) return true;
+  const t = term.toLowerCase();
+  return (
+    String(lead.name || "").toLowerCase().includes(t) ||
+    String(lead.email || "").toLowerCase().includes(t) ||
+    String(lead.phone || "").toLowerCase().includes(t)
+  );
+}
+
+function matchesStatus(lead){
+  if(currentStatusFilter === "all") return true;
+  return (lead.status || "new") === currentStatusFilter;
+}
+
+function applyLeadFilters(){
+  const term = (document.getElementById("leadSearch")?.value || "").trim();
+  const filtered = allLeadsCache.filter(l => matchesStatus(l) && matchesSearch(l, term));
+  renderLeadsTable(filtered);
+}
+
+function statusSelectHTML(current, id){
+  const opts = ["new","contacted","converted"];
+  const c = current || "new";
+  return `
+    <select class="status-select" data-id="${id}" onchange="updateStatus(this)">
+      ${opts.map(s => `<option value="${s}" ${s===c ? "selected":""}>${s}</option>`).join("")}
+    </select>
+  `;
+}
+
+function renderLeadsTable(leads){
+  const tbody = document.getElementById("leadsTable");
+  tbody.innerHTML = "";
+
+  leads.forEach(lead => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${lead.name}</td>
+        <td>${lead.email}</td>
+        <td>${lead.phone || "-"}</td>
+        <td>
+          ${statusSelectHTML(lead.status, lead.id)}
+          <span class="save-msg" id="saveMsg-${lead.id}"></span>
+        </td>
+        <td>
+          <button class="danger-mini" type="button" onclick="deleteLead(${lead.id})">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  if(leads.length === 0){
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">No leads found.</td></tr>`;
+  }
+}
+
+async function loadLeads(){
+  const res = await fetch(`${API}/leads`);
+  const leads = await res.json();
+  allLeadsCache = Array.isArray(leads) ? leads : [];
+  applyLeadFilters();
+}
+
+/* Status update -> DB */
+async function updateStatus(selectEl){
+  const leadId = selectEl.getAttribute("data-id");
+  const status = selectEl.value;
+
+  const msg = document.getElementById(`saveMsg-${leadId}`);
+  if(msg) msg.textContent = "Saving...";
+
+  try{
+    const res = await fetch(`${API}/leads/${leadId}/status`, {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ status })
+    });
+
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.message || "Update failed");
+
+    toast("Status updated ✅", "success");
+    if(msg) msg.textContent = "✅";
+    loadAnalytics();
+    await loadLeads();
+    setTimeout(() => { if(msg) msg.textContent = ""; }, 900);
+  }catch(err){
+    toast("Status update failed ❌", "error");
+    if(msg) msg.textContent = "❌";
+  }
+}
+
+/* Delete -> DB */
+async function deleteLead(id){
+  if(!confirm("Delete this lead?")) return;
+
+  try{
+    const res = await fetch(`${API}/leads/${id}`, { method: "DELETE" });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error || "Delete failed");
+
+    toast("Lead deleted ✅", "success");
+    loadAnalytics();
+    await loadLeads();
+  }catch(err){
+    toast("Delete failed ❌", "error");
+  }
+}
+
+/* ✅ Submit manual lead (form opens only when user clicks Add Lead) */
+document.addEventListener("DOMContentLoaded", () => {
+  loadUsername();
+  loadAnalytics();
+  showSection("dashboard");
+  setStatusFilter("all");
+
+  document.getElementById("leadForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const msg = document.getElementById("leadMsg");
+    msg.textContent = "Saving...";
+
+    const payload = {
+      name: document.getElementById("leadName").value.trim(),
+      email: document.getElementById("leadEmail").value.trim(),
+      phone: document.getElementById("leadPhone").value.trim(),
+      status: document.getElementById("leadStatus").value,
+      source: "manual"
+    };
+
+    try{
+      const res = await fetch(`${API}/leads`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(data.error || "Failed to add lead");
+
+      msg.textContent = "✅ Lead saved!";
+      toast("Lead added ✅", "success");
+      e.target.reset();
+
+      loadAnalytics();
+      await loadLeads();
+
+      // optional: close form after save
+      closeLeadForm();
+    }catch(err){
+      msg.textContent = "❌ " + err.message;
+      toast("Failed to add lead ❌", "error");
+    }
+  });
+});
+</script>
+
+</body>
+</html>

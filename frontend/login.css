@@ -1,0 +1,194 @@
+/* ===================================
+   MINI CRM LOGIN — ColorHunt Theme
+=================================== */
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+}
+
+/* ===== Palette ===== */
+:root{
+  --p1:#1C0770;   /* deep purple */
+  --p2:#261CC1;   /* indigo */
+  --p3:#3A9AFF;   /* sky blue */
+  --p4:#F1FF5E;   /* highlight */
+
+  --text:#0f172a;
+}
+
+/* ===================================
+   PAGE BACKGROUND
+=================================== */
+.login-page{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+
+  background:
+    radial-gradient(900px 500px at 10% 10%, rgba(58,154,255,0.25), transparent 60%),
+    radial-gradient(900px 500px at 90% 80%, rgba(38,28,193,0.25), transparent 60%),
+    linear-gradient(135deg, #f6f7ff, #eef2ff);
+}
+
+/* ===================================
+   DECORATIVE BLUR CIRCLES
+=================================== */
+.bg-circle{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(90px);
+  opacity:.45;
+  z-index:0;
+}
+
+.bg-circle.one{
+  width:320px;
+  height:320px;
+  background:var(--p3);
+  top:8%;
+  left:8%;
+}
+
+.bg-circle.two{
+  width:420px;
+  height:420px;
+  background:var(--p2);
+  bottom:10%;
+  right:10%;
+}
+
+/* ===================================
+   LOGIN CARD
+=================================== */
+.login-card{
+  position:relative;
+  z-index:1;
+
+  width:380px;
+  padding:34px 32px;
+  border-radius:22px;
+
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+
+  border:1px solid rgba(38,28,193,0.15);
+  box-shadow:0 30px 60px rgba(28,7,112,0.18);
+
+  animation:fadeUp .5s ease;
+}
+
+@keyframes fadeUp{
+  from{opacity:0; transform:translateY(20px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ===================================
+   TITLES
+=================================== */
+.login-card h2{
+  text-align:center;
+  color:var(--p1);
+  font-weight:700;
+  margin-bottom:6px;
+}
+
+.subtitle{
+  text-align:center;
+  color:#64748b;
+  font-size:13px;
+  margin-bottom:26px;
+  font-weight:500;
+}
+
+/* ===================================
+   INPUT GROUP
+=================================== */
+.input-group{
+  position:relative;
+  margin-bottom:20px;
+}
+
+.input-group i{
+  position:absolute;
+  top:50%;
+  left:14px;
+  transform:translateY(-50%);
+  color:var(--p2);
+  font-size:14px;
+}
+
+.input-group input{
+  width:100%;
+  height:46px;
+  padding:12px 14px 12px 42px;
+
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  outline:none;
+
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  background:#ffffff;
+
+  transition:all .2s ease;
+}
+
+.input-group input:focus{
+  border-color:var(--p3);
+  box-shadow:0 0 0 4px rgba(58,154,255,0.18);
+}
+
+/* ===================================
+   LOGIN BUTTON
+=================================== */
+.login-btn{
+  width:100%;
+  height:46px;
+  border:none;
+  border-radius:12px;
+
+  background:linear-gradient(180deg,var(--p2),var(--p1));
+  color:#fff;
+
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+
+  margin-top:10px;
+  transition:all .2s ease;
+  box-shadow:0 14px 26px rgba(38,28,193,0.35);
+}
+
+.login-btn:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.05);
+}
+
+/* ===================================
+   ERROR TEXT
+=================================== */
+.error{
+  margin-top:12px;
+  text-align:center;
+  font-size:13px;
+  font-weight:600;
+  color:#ef4444;
+}
+
+/* ===================================
+   MOBILE
+=================================== */
+@media(max-width:480px){
+  .login-card{
+    width:92%;
+    padding:26px 22px;
+  }
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Login | Mini CRM</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body class="login-page">
+
+  <!-- Decorative blurred circles -->
+  <div class="bg-circle one"></div>
+  <div class="bg-circle two"></div>
+
+  <div class="login-card">
+    <h2>Admin Login</h2>
+    <p class="subtitle">Mini CRM Control Panel</p>
+
+    <form onsubmit="login(event)">
+      <div class="input-group">
+        <i class="fa fa-user"></i>
+        <input id="username" type="text" placeholder="Username" required />
+      </div>
+
+      <div class="input-group">
+        <i class="fa fa-lock"></i>
+        <input id="password" type="password" placeholder="Password" required />
+      </div>
+
+      <button type="submit" class="login-btn">Login</button>
+
+      <p id="errorBox" class="error"></p>
+    </form>
+  </div>
+
+  <!-- KEEP YOUR EXISTING LOGIN JS BELOW -->
+  <script>
+    async function login(e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorBox = document.getElementById("errorBox");
+
+      try {
+        const res = await fetch("http://localhost:5000/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorBox.innerText = data.message || "Login failed";
+          return;
+        }
+
+        localStorage.setItem("admin", JSON.stringify(data.user));
+        window.location.href = "dashboard.html";
+
+      } catch {
+        errorBox.innerText = "Server not reachable";
+      }
+    }
+  </script>
+
+</body>
+</html>
