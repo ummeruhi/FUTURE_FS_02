@@ -4,87 +4,214 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mini CRM</title>
+
+  <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
 <div class="app">
+  <!-- Mobile overlay -->
+  <div class="overlay hidden" id="overlay" onclick="closeSidebarMobile()"></div>
 
-  <!-- ✅ LEFT SIDEBAR -->
-  <aside class="sidebar">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
     <div class="sb-top">
-      <div class="brand">Mini CRM</div>
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-text">Mini CRM</span>
+      </div>
       <div class="user-chip" id="navUsername">User</div>
     </div>
 
     <div class="sb-nav">
       <button type="button" class="sb-btn active" id="tabDashboard" onclick="showSection('dashboard')">
-        Dashboard
+        <span class="sb-ico">📊</span><span class="sb-label">Dashboard</span>
       </button>
+
       <button type="button" class="sb-btn" id="tabLeads" onclick="showSection('leads')">
-        Leads
+        <span class="sb-ico">🧾</span><span class="sb-label">Leads</span>
+      </button>
+
+      <button type="button" class="sb-btn" id="tabPipeline" onclick="showSection('pipeline')">
+        <span class="sb-ico">🧩</span><span class="sb-label">Pipeline</span>
       </button>
     </div>
 
     <div class="sb-bottom">
-      <button type="button" class="sb-btn danger" onclick="logout()">Logout</button>
+      <button type="button" class="sb-btn danger" onclick="logout()">
+        <span class="sb-ico">🚪</span><span class="sb-label">Logout</span>
+      </button>
+      
     </div>
   </aside>
 
-  <!-- ✅ MAIN -->
+  <!-- Main -->
   <main class="main">
     <div class="topbar">
-      <div class="page-title" id="pageTitle">Dashboard</div>
-      
+      <button class="icon-btn nav-toggle" type="button" id="navToggle" onclick="toggleSidebar()" title="Toggle sidebar">⟵</button>
+
+      <div class="topbar-left">
+        <button class="icon-btn mobile-only" type="button" onclick="openSidebarMobile()" aria-label="Open menu">☰</button>
+        <div>
+          <div class="page-title" id="pageTitle">Dashboard</div>
+          <div class="soft-note" id="softNote">Insights, pipeline & activity</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="secondary-btn" type="button" onclick="refreshAll()" title="Refresh">⟳ Refresh</button>
+        <button class="secondary-btn" type="button" onclick="exportCSV()" title="Export filtered leads">⤓ Export CSV</button>
+        <button class="icon-btn" type="button" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      </div>
     </div>
 
     <!-- ========================= DASHBOARD ========================= -->
     <section id="sectionDashboard">
       <div class="stats">
-        <div class="card"><h3>Total Leads</h3><div class="counter" id="totalLeads">0</div></div>
-        <div class="card"><h3>New Leads</h3><div class="counter" id="newLeads">0</div></div>
-        <div class="card"><h3>Contacted</h3><div class="counter" id="contactedLeads">0</div></div>
-        <div class="card"><h3>Converted</h3><div class="counter" id="convertedLeads">0</div></div>
+        <div class="card stat-card">
+          <div class="stat-top">
+            <h3>Total Leads</h3>
+            <span class="badge">All</span>
+          </div>
+          <div class="counter" id="totalLeads">0</div>
+          <div class="stat-foot"><span class="dot up"></span> Updated live</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-top">
+            <h3>New Leads</h3>
+            <span class="badge blue">New</span>
+          </div>
+          <div class="counter" id="newLeads">0</div>
+          <div class="stat-foot"><span class="dot"></span> Needs follow-up</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-top">
+            <h3>Contacted</h3>
+            <span class="badge indigo">Contacted</span>
+          </div>
+          <div class="counter" id="contactedLeads">0</div>
+          <div class="stat-foot"><span class="dot"></span> In progress</div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-top">
+            <h3>Converted</h3>
+            <span class="badge lime">Converted</span>
+          </div>
+          <div class="counter" id="convertedLeads">0</div>
+          <div class="stat-foot"><span class="dot"></span> Won</div>
+        </div>
       </div>
 
       <div class="graphs">
         <div class="graph-card">
-          <h3>Lead Status</h3>
-          <div class="bars">
-            <div class="bar"><span>New</span><div class="fill" id="barNew"></div></div>
-            <div class="bar"><span>Contacted</span><div class="fill" id="barContacted"></div></div>
-            <div class="bar"><span>Converted</span><div class="fill" id="barConverted"></div></div>
+          <div class="card-head">
+            <h3>Status Breakdown</h3>
+            <div class="pill-mini">Last sync: <span id="syncTime">—</span></div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="barChart" height="120"></canvas>
           </div>
         </div>
 
         <div class="graph-card">
-          <h3>Conversion Rate</h3>
-          <div class="donut" id="donut">
-            <span id="conversionRate">0%</span>
+          <div class="card-head">
+            <h3>Conversion</h3>
+            <div class="pill-mini">Rate: <span id="conversionRateText">0%</span></div>
           </div>
+          <div class="chart-wrap donut-wrap">
+            <canvas id="donutChart"></canvas>
+          </div>
+          <div class="mini-kpis">
+            <div class="mini-kpi">
+              <div class="mini-kpi-label">New</div>
+              <div class="mini-kpi-val" id="kpiNew">0</div>
+            </div>
+            <div class="mini-kpi">
+              <div class="mini-kpi-label">Contacted</div>
+              <div class="mini-kpi-val" id="kpiContacted">0</div>
+            </div>
+            <div class="mini-kpi">
+              <div class="mini-kpi-label">Converted</div>
+              <div class="mini-kpi-val" id="kpiConverted">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity + Top leads -->
+      <div class="dash-bottom">
+        <div class="graph-card">
+          <div class="card-head">
+            <h3>Activity Timeline</h3>
+            <div class="pill-mini">
+              <button class="link-btn" type="button" onclick="clearActivity()">Clear</button>
+            </div>
+          </div>
+          <div class="timeline" id="timeline"></div>
+        </div>
+
+        <div class="graph-card">
+          <div class="card-head">
+            <h3>Top Leads (Score)</h3>
+            <div class="pill-mini">Auto scoring</div>
+          </div>
+          <div class="top-leads" id="topLeads"></div>
         </div>
       </div>
     </section>
 
     <!-- ========================= LEADS ========================= -->
     <section id="sectionLeads" class="hidden">
-
       <div class="section-head">
         <div>
-          <div class="section-title"></div>
-          <div class="section-sub">Search, filter, update status, delete, add manually</div>
+          <div class="section-title">Leads</div>
+          <div class="section-sub">
+            Search, filter, update status, delete, bulk actions • <span class="kbd">/</span> search • <span class="kbd">N</span> new lead
+          </div>
         </div>
 
-        <!-- ✅ Add Lead button (opens form) -->
-        <button type="button" class="primary-btn" onclick="openLeadForm()">
-          + Add Lead
-        </button>
+        <div class="section-actions">
+          <button type="button" class="primary-btn" onclick="openLeadForm()">+ Add Lead</button>
+        </div>
       </div>
 
-      <!-- ✅ Manual Lead Form (HIDDEN by default) -->
+      <!-- Bulk bar (NO TAGS) -->
+      <div class="bulkbar hidden" id="bulkBar">
+        <div class="bulk-left">
+          <span class="bulk-pill"><b id="bulkCount">0</b> selected</span>
+          <button class="link-btn" type="button" onclick="clearSelection()">Clear</button>
+        </div>
+
+        <div class="bulk-right">
+          <label class="mini-label">
+            Set status
+            <select id="bulkStatus" onchange="bulkSetStatus(this.value)">
+              <option value="">—</option>
+              <option value="new">new</option>
+              <option value="contacted">contacted</option>
+              <option value="converted">converted</option>
+            </select>
+          </label>
+
+          <button class="danger-mini" type="button" onclick="bulkDelete()">Delete</button>
+        </div>
+      </div>
+
+      <!-- Manual lead form -->
       <div class="form-card hidden" id="leadFormCard">
         <div class="form-head">
-          <h3>Add Lead (Manual)</h3>
+          <h3>Add Lead </h3>
           <button type="button" class="close-btn" onclick="closeLeadForm()">✕</button>
         </div>
 
@@ -103,24 +230,43 @@
             </select>
           </div>
 
-          <button type="submit" class="primary-btn">Save Lead</button>
+          <div class="form-actions">
+            <button type="submit" class="primary-btn">Save Lead</button>
+            <button type="button" class="secondary-btn" onclick="closeLeadForm()">Cancel</button>
+          </div>
+
           <p id="leadMsg" class="form-msg"></p>
         </form>
       </div>
 
-      <!-- ✅ Leads Table (ALWAYS visible) -->
+      <!-- Leads table (NO TAG COLUMN) -->
       <div class="table-card" id="leadsTableCard">
         <div class="table-tools">
           <div class="searchbox">
             <span class="search-ico">🔎</span>
             <input id="leadSearch" type="text" placeholder="Search by name/email/phone..." oninput="applyLeadFilters()" />
+            <button class="clear-btn" type="button" onclick="clearSearch()" title="Clear search">×</button>
           </div>
 
-          <div class="filters">
-            <button type="button" class="pill active" data-filter="all" onclick="setStatusFilter('all')">All</button>
-            <button type="button" class="pill" data-filter="new" onclick="setStatusFilter('new')">New</button>
-            <button type="button" class="pill" data-filter="contacted" onclick="setStatusFilter('contacted')">Contacted</button>
-            <button type="button" class="pill" data-filter="converted" onclick="setStatusFilter('converted')">Converted</button>
+          <div class="tools-right">
+            <div class="filters">
+              <button type="button" class="pill active" data-filter="all" onclick="setStatusFilter('all')">All</button>
+              <button type="button" class="pill" data-filter="new" onclick="setStatusFilter('new')">New</button>
+              <button type="button" class="pill" data-filter="contacted" onclick="setStatusFilter('contacted')">Contacted</button>
+              <button type="button" class="pill" data-filter="converted" onclick="setStatusFilter('converted')">Converted</button>
+            </div>
+
+            <div class="pager-controls">
+              <label class="mini-label">
+                Page size
+                <select id="pageSize" onchange="setPageSize(this.value)">
+                  <option value="5">5</option>
+                  <option value="10" selected>10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -128,308 +274,107 @@
           <table>
             <thead>
               <tr>
-                <th style="min-width:160px;">Name</th>
+                <th style="min-width:64px;">
+                  <input type="checkbox" id="selectAll" onclick="toggleSelectAll(this.checked)" />
+                </th>
+                <th style="min-width:220px;">Lead</th>
                 <th style="min-width:220px;">Email</th>
                 <th style="min-width:140px;">Phone</th>
+                <th style="min-width:160px;">Score</th>
                 <th style="min-width:240px;">Status</th>
-                <th style="min-width:120px;">Action</th>
+                <th style="min-width:190px;">Actions</th>
               </tr>
             </thead>
             <tbody id="leadsTable"></tbody>
           </table>
         </div>
 
-        
+        <div class="table-footer">
+          <div class="table-meta">
+            Showing <b id="showingCount">0</b> of <b id="totalCount">0</b>
+          </div>
+
+          <div class="pager">
+            <button class="secondary-btn" type="button" onclick="prevPage()">← Prev</button>
+            <div class="page-chip">Page <b id="pageNumber">1</b> / <b id="pageTotal">1</b></div>
+            <button class="secondary-btn" type="button" onclick="nextPage()">Next →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= PIPELINE (KANBAN) ========================= -->
+    <section id="sectionPipeline" class="hidden">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Pipeline</div>
+          <div class="section-sub">Drag cards between columns to update status • Notes supported</div>
+        </div>
+
+        <div class="section-actions">
+          <button class="secondary-btn" type="button" onclick="loadLeads()">Sync Leads</button>
+        </div>
       </div>
 
+      <div class="kanban">
+        <div class="kan-col" data-status="new" ondragover="allowDrop(event)" ondrop="dropCard(event,'new')">
+          <div class="kan-head">
+            <div class="kan-title">New</div>
+            <div class="kan-count" id="kanCountNew">0</div>
+          </div>
+          <div class="kan-body" id="kanNew"></div>
+        </div>
+
+        <div class="kan-col" data-status="contacted" ondragover="allowDrop(event)" ondrop="dropCard(event,'contacted')">
+          <div class="kan-head">
+            <div class="kan-title">Contacted</div>
+            <div class="kan-count" id="kanCountContacted">0</div>
+          </div>
+          <div class="kan-body" id="kanContacted"></div>
+        </div>
+
+        <div class="kan-col" data-status="converted" ondragover="allowDrop(event)" ondrop="dropCard(event,'converted')">
+          <div class="kan-head">
+            <div class="kan-title">Converted</div>
+            <div class="kan-count" id="kanCountConverted">0</div>
+          </div>
+          <div class="kan-body" id="kanConverted"></div>
+        </div>
+      </div>
     </section>
+
   </main>
 </div>
 
 <!-- Toasts -->
 <div class="toast-wrap" id="toastWrap"></div>
 
-<script>
-const API = "http://localhost:5000";
+<!-- Notes Modal (NO TAG UI) -->
+<div class="modal hidden" id="notesModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Lead Notes</div>
+        <div class="modal-sub" id="notesLeadMeta">—</div>
+      </div>
+      <button class="icon-btn" type="button" onclick="closeNotes()" aria-label="Close">✕</button>
+    </div>
 
-/* Toast */
-function toast(message, type="success"){
-  const wrap = document.getElementById("toastWrap");
-  const t = document.createElement("div");
-  t.className = `toast ${type}`;
-  t.textContent = message;
-  wrap.appendChild(t);
-  setTimeout(() => t.classList.add("show"), 10);
-  setTimeout(() => {
-    t.classList.remove("show");
-    setTimeout(() => t.remove(), 250);
-  }, 2200);
-}
+    <div style="margin-top:12px;">
+      <div class="modal-label">Notes</div>
+      <textarea id="notesText" class="notes-area" placeholder="Write call summary, next steps, follow-up notes..."></textarea>
+      <div class="small-hint" id="notesHint">Saved to backend if endpoint exists, otherwise saved locally.</div>
+    </div>
 
-/* Tabs */
-function setActive(tab){
-  document.getElementById("tabDashboard").classList.remove("active");
-  document.getElementById("tabLeads").classList.remove("active");
-  if(tab === "dashboard") document.getElementById("tabDashboard").classList.add("active");
-  if(tab === "leads") document.getElementById("tabLeads").classList.add("active");
-}
+    <div class="modal-actions">
+      <button class="primary-btn" type="button" onclick="saveNotes()">Save</button>
+      <button class="secondary-btn" type="button" onclick="closeNotes()">Close</button>
+    </div>
+  </div>
+</div>
 
-function showSection(which){
-  const dash = document.getElementById("sectionDashboard");
-  const leads = document.getElementById("sectionLeads");
-  const title = document.getElementById("pageTitle");
+<script src="script.js">
 
-  if(which === "dashboard"){
-    dash.classList.remove("hidden");
-    leads.classList.add("hidden");
-    setActive("dashboard");
-    title.textContent = "Dashboard";
-    loadAnalytics();
-    return;
-  }
-
-  dash.classList.add("hidden");
-  leads.classList.remove("hidden");
-  setActive("leads");
-  title.textContent = "Leads";
-
-  // ✅ Leads tab: show table, but keep form hidden (your requirement)
-  closeLeadForm();
-  loadLeads();
-}
-
-/* Username */
-function loadUsername(){
-  const raw = localStorage.getItem("admin");
-  let name = "User";
-  try{
-    const obj = JSON.parse(raw);
-    if(obj?.username) name = obj.username;
-    if(typeof raw === "string" && raw && !obj?.username) name = raw;
-  }catch(e){}
-  document.getElementById("navUsername").textContent = name;
-}
-
-function logout(){
-  localStorage.removeItem("admin");
-  window.location.href = "login.html";
-}
-
-/* ✅ Manual lead form open/close (only by button) */
-function openLeadForm(){
-  const card = document.getElementById("leadFormCard");
-  card.classList.remove("hidden");
-  card.scrollIntoView({ behavior: "smooth", block: "start" });
-  setTimeout(() => document.getElementById("leadName")?.focus(), 120);
-}
-function closeLeadForm(){
-  document.getElementById("leadFormCard").classList.add("hidden");
-}
-
-/* Analytics */
-function animateCounter(id, value){
-  const el = document.getElementById(id);
-  const target = Number(value || 0);
-  let start = 0;
-  const step = target / 40;
-
-  const interval = setInterval(() => {
-    start += step;
-    if(start >= target){
-      el.innerText = target;
-      clearInterval(interval);
-    }else{
-      el.innerText = Math.floor(start);
-    }
-  }, 20);
-}
-
-async function loadAnalytics(){
-  const res = await fetch(`${API}/analytics`);
-  const data = await res.json();
-
-  animateCounter("totalLeads", data.total);
-  animateCounter("newLeads", data.newLeads);
-  animateCounter("contactedLeads", data.contacted);
-  animateCounter("convertedLeads", data.converted);
-
-  const total = Number(data.total) || 1;
-  document.getElementById("barNew").style.height = (data.newLeads / total) * 100 + "%";
-  document.getElementById("barContacted").style.height = (data.contacted / total) * 100 + "%";
-  document.getElementById("barConverted").style.height = (data.converted / total) * 100 + "%";
-
-  document.getElementById("donut").style.setProperty("--percent", Number(data.conversionRate) || 0);
-  document.getElementById("conversionRate").innerText = (Number(data.conversionRate) || 0) + "%";
-}
-
-/* Leads search/filter */
-let allLeadsCache = [];
-let currentStatusFilter = "all";
-
-function setStatusFilter(filter){
-  currentStatusFilter = filter;
-  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
-  const pill = document.querySelector(`.pill[data-filter="${filter}"]`);
-  if(pill) pill.classList.add("active");
-  applyLeadFilters();
-}
-
-function matchesSearch(lead, term){
-  if(!term) return true;
-  const t = term.toLowerCase();
-  return (
-    String(lead.name || "").toLowerCase().includes(t) ||
-    String(lead.email || "").toLowerCase().includes(t) ||
-    String(lead.phone || "").toLowerCase().includes(t)
-  );
-}
-
-function matchesStatus(lead){
-  if(currentStatusFilter === "all") return true;
-  return (lead.status || "new") === currentStatusFilter;
-}
-
-function applyLeadFilters(){
-  const term = (document.getElementById("leadSearch")?.value || "").trim();
-  const filtered = allLeadsCache.filter(l => matchesStatus(l) && matchesSearch(l, term));
-  renderLeadsTable(filtered);
-}
-
-function statusSelectHTML(current, id){
-  const opts = ["new","contacted","converted"];
-  const c = current || "new";
-  return `
-    <select class="status-select" data-id="${id}" onchange="updateStatus(this)">
-      ${opts.map(s => `<option value="${s}" ${s===c ? "selected":""}>${s}</option>`).join("")}
-    </select>
-  `;
-}
-
-function renderLeadsTable(leads){
-  const tbody = document.getElementById("leadsTable");
-  tbody.innerHTML = "";
-
-  leads.forEach(lead => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${lead.name}</td>
-        <td>${lead.email}</td>
-        <td>${lead.phone || "-"}</td>
-        <td>
-          ${statusSelectHTML(lead.status, lead.id)}
-          <span class="save-msg" id="saveMsg-${lead.id}"></span>
-        </td>
-        <td>
-          <button class="danger-mini" type="button" onclick="deleteLead(${lead.id})">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-
-  if(leads.length === 0){
-    tbody.innerHTML = `<tr><td colspan="5" class="empty">No leads found.</td></tr>`;
-  }
-}
-
-async function loadLeads(){
-  const res = await fetch(`${API}/leads`);
-  const leads = await res.json();
-  allLeadsCache = Array.isArray(leads) ? leads : [];
-  applyLeadFilters();
-}
-
-/* Status update -> DB */
-async function updateStatus(selectEl){
-  const leadId = selectEl.getAttribute("data-id");
-  const status = selectEl.value;
-
-  const msg = document.getElementById(`saveMsg-${leadId}`);
-  if(msg) msg.textContent = "Saving...";
-
-  try{
-    const res = await fetch(`${API}/leads/${leadId}/status`, {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ status })
-    });
-
-    const data = await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(data.message || "Update failed");
-
-    toast("Status updated ✅", "success");
-    if(msg) msg.textContent = "✅";
-    loadAnalytics();
-    await loadLeads();
-    setTimeout(() => { if(msg) msg.textContent = ""; }, 900);
-  }catch(err){
-    toast("Status update failed ❌", "error");
-    if(msg) msg.textContent = "❌";
-  }
-}
-
-/* Delete -> DB */
-async function deleteLead(id){
-  if(!confirm("Delete this lead?")) return;
-
-  try{
-    const res = await fetch(`${API}/leads/${id}`, { method: "DELETE" });
-    const data = await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(data.error || "Delete failed");
-
-    toast("Lead deleted ✅", "success");
-    loadAnalytics();
-    await loadLeads();
-  }catch(err){
-    toast("Delete failed ❌", "error");
-  }
-}
-
-/* ✅ Submit manual lead (form opens only when user clicks Add Lead) */
-document.addEventListener("DOMContentLoaded", () => {
-  loadUsername();
-  loadAnalytics();
-  showSection("dashboard");
-  setStatusFilter("all");
-
-  document.getElementById("leadForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const msg = document.getElementById("leadMsg");
-    msg.textContent = "Saving...";
-
-    const payload = {
-      name: document.getElementById("leadName").value.trim(),
-      email: document.getElementById("leadEmail").value.trim(),
-      phone: document.getElementById("leadPhone").value.trim(),
-      status: document.getElementById("leadStatus").value,
-      source: "manual"
-    };
-
-    try{
-      const res = await fetch(`${API}/leads`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json().catch(()=>({}));
-      if(!res.ok) throw new Error(data.error || "Failed to add lead");
-
-      msg.textContent = "✅ Lead saved!";
-      toast("Lead added ✅", "success");
-      e.target.reset();
-
-      loadAnalytics();
-      await loadLeads();
-
-      // optional: close form after save
-      closeLeadForm();
-    }catch(err){
-      msg.textContent = "❌ " + err.message;
-      toast("Failed to add lead ❌", "error");
-    }
-  });
-});
 </script>
 
 </body>
