@@ -80,3 +80,43 @@ This project helps businesses manage leads efficiently with a premium SaaS-style
 ---
 
 # 📁 Project Structure
+mini-crm/
+│
+├── backend/
+│ ├── server.js
+│ └── package.json
+│
+├── frontend/
+│ ├── dashboard.html
+│ ├── style.css
+│ └── script.js
+│
+└── README.md
+
+
+---
+
+# ⚙️ Installation & Setup
+
+## 1️⃣ Clone Repository
+
+```bash
+git clone https://github.com/ummeruhi/FUTURE_FS_02.git
+cd YOUR_REPO
+
+assets/dashboard.png
+assets/leads.png
+assets/pipeline.png
+
+🚀 Future Enhancements
+
+🔐 Authentication (JWT)
+
+👥 Admin / Staff roles
+
+📧 Email follow-up reminders
+
+📊 Advanced analytics
+
+🌐 Deployment (Render / Vercel / Railway)
+
