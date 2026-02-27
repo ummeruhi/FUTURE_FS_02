@@ -102,7 +102,8 @@ mini-crm/
 
 ```bash
 git clone https://github.com/ummeruhi/FUTURE_FS_02.git
-cd YOUR_REPO
+cd FUTURE_FS_02
+
 
 assets/dashboard.png
 assets/leads.png
