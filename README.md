@@ -103,21 +103,24 @@ mini-crm/
 ```bash
 git clone https://github.com/ummeruhi/FUTURE_FS_02.git
 cd FUTURE_FS_02
+2️⃣ Backend Setup
+cd backend
+npm install
+node server.js
 
+Server runs at:
 
-assets/dashboard.png
-assets/leads.png
-assets/pipeline.png
+http://localhost:5000
+3️⃣ Database Setup (MySQL)
 
-🚀 Future Enhancements
+Create database:
 
-🔐 Authentication (JWT)
+CREATE DATABASE mini_crm;
 
-👥 Admin / Staff roles
+4️⃣ Run Frontend
 
-📧 Email follow-up reminders
+Open:
 
-📊 Advanced analytics
+dashboard.html
 
-🌐 Deployment (Render / Vercel / Railway)
-
+OR use Live Server in VS Code.
