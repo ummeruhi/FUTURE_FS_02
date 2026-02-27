@@ -94,46 +94,6 @@ mini-crm/
 └── README.md
 
 
----
 
-⚙️ Installation & Setup
 
-Follow these steps to run the Mini CRM Project locally.
 
-1️⃣ Clone Repository
-git clone https://github.com/ummeruhi/FUTURE_FS_02.git
-cd FUTURE_FS_02
-2️⃣ Backend Setup
-
-Navigate to the backend folder and install dependencies:
-
-cd backend
-npm install
-node server.js
-
-✅ Server will run at:
-👉 http://localhost:5000
-
-3️⃣ Database Setup (MySQL)
-
-Create the required database in MySQL:
-
-CREATE DATABASE mini_crm;
-
-⚠️ Make sure your MySQL credentials in server.js match your local setup.
-
-4️⃣ Run Frontend
-
-Open the frontend using either method:
-
-Option A — Directly open:
-
-dashboard.html
-
-Option B — Recommended (VS Code):
-
-Install Live Server
-
-Right-click dashboard.html
-
-Click Open with Live Server
